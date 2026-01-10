@@ -194,7 +194,7 @@ local merge_frontmatter = function(line_iterator, buf, opts)
       note.metadata = {}
     end
     for key in iter(template_as_note.metadata) do
-      note.metadata[key] = template_as_note[key]
+      note.metadata[key] = template_as_note.metadata[key]
     end
     for key in iter(template_as_note.tags) do
       note:add_tag(key)
