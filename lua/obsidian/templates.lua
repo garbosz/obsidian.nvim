@@ -193,11 +193,15 @@ local merge_frontmatter = function(line_iterator, buf, opts)
     if not note.metadata then
       note.metadata = {}
     end
-    for key in iter(template_as_note.metadata) do
-      note.metadata[key] = template_as_note.metadata[key]
+    if template_as_note.metadata then
+      for key in iter(template_as_note.metadata) do
+        note.metadata[key] = template_as_note.metadata[key]
+      end
     end
-    for key in iter(template_as_note.tags) do
-      note:add_tag(key)
+    if template_as_note.tags then
+      for key in iter(template_as_note.tags) do
+        note:add_tag(key)
+      end
     end
     local insert_lines = compat.flatten(note:frontmatter_lines(false))
     if has_frontmatter then
