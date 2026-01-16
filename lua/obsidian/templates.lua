@@ -233,8 +233,8 @@ M.insert_template = function(opts)
     local lines = template_file:lines()
     local fm_delta, data = merge_frontmatter(lines, buf, opts)
     if fm_delta then
-      -- Adjust cursor row for frontmatter changes (row is 0-indexed)
-      row = row + fm_delta
+      -- Convert cursor row from 1-indexed to 0-indexed, then adjust for frontmatter changes
+      row = (row - 1) + fm_delta
     else
       row = row - 1
     end
