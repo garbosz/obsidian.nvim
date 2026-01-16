@@ -162,6 +162,7 @@ end
 local merge_frontmatter = function(line_iterator, buf, opts)
   local data = {}
   local note = Note.from_buffer(buf)
+  local note_fm_end = note.frontmatter_end_line or 0
   local frontmatter_end = 0
   local manage_frontmatter = opts.client:should_save_frontmatter(note)
   local content_start
@@ -204,11 +205,14 @@ local merge_frontmatter = function(line_iterator, buf, opts)
       end
     end
     local insert_lines = compat.flatten(note:frontmatter_lines(false))
+    local new_fm_lines = #insert_lines
     if has_frontmatter then
-      vim.api.nvim_buf_set_lines(buf, 0, frontmatter_end, false, {})
+      vim.api.nvim_buf_set_lines(buf, 0, note_fm_end, false, {})
     end
     vim.api.nvim_buf_set_lines(buf, 0, 0, false, insert_lines)
-    return content_start, { unpack(data, content_start, #data) }
+    -- Return the frontmatter size change so cursor position can be adjusted
+    local fm_delta = new_fm_lines - note_fm_end
+    return fm_delta, { unpack(data, content_start, #data) }
   else
     return nil, data
   end
@@ -226,8 +230,13 @@ M.insert_template = function(opts)
   local template_file = io.open(tostring(template_path), "r")
   if template_file then
     local lines = template_file:lines()
-    local content_start, data = merge_frontmatter(lines, buf, opts)
-    row = content_start or row - 1
+    local fm_delta, data = merge_frontmatter(lines, buf, opts)
+    if fm_delta then
+      -- Adjust cursor row for frontmatter changes (row is 0-indexed)
+      row = row + fm_delta
+    else
+      row = row - 1
+    end
     for line in iter(data) do
       if string.find(line, "[\r\n]") then
         local line_start = 1
